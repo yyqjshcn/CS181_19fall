@@ -162,14 +162,12 @@ def atMostOne(literals) :
     "*** YOUR CODE HERE ***"
     result = []
     for i in literals:    # Suppose i to be true
-        operating = literals
-        for j in range(len(operating)):
-            if i != operating[j]:
-                operating[j] = logic.Expr('~', operating[j])
+        for j in literals:
+            if i != j:
+                result.append((~i|~j))
             else:
-                continue
-        result.append(logic.conjoin(operating))
-    return logic.disjoin(result)
+                continue        
+    return logic.conjoin(result)
 
     util.raiseNotDefined()
     
@@ -182,6 +180,7 @@ def exactlyOne(literals) :
     the expressions in the list is true.
     """
     "*** YOUR CODE HERE ***"
+    return logic.conjoin([atMostOne(literals), atLeastOne(literals)])
     util.raiseNotDefined()
 
 
