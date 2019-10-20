@@ -168,8 +168,6 @@ def atMostOne(literals) :
             else:
                 continue        
     return logic.conjoin(result)
-
-    util.raiseNotDefined()
     
 
 
@@ -181,7 +179,6 @@ def exactlyOne(literals) :
     """
     "*** YOUR CODE HERE ***"
     return logic.conjoin([atMostOne(literals), atLeastOne(literals)])
-    util.raiseNotDefined()
 
 
 def extractActionSequence(model, actions):
@@ -197,6 +194,21 @@ def extractActionSequence(model, actions):
     ['West', 'South', 'North']
     """
     "*** YOUR CODE HERE ***"
+    key = list(model.keys())
+    val = list(model.values())
+    result = []
+    for i in range(len(val)):
+        if val[i] == True:
+            operation = logic.PropSymbolExpr.parseExpr(key[i])
+            if operation[0] in actions:
+                result.append(operation)
+            
+    def takeSecond(elem):
+        return elem[1]
+    for i in range(len(result)): 
+        result[i] = [result[i][0], int(result[i][1])]
+    result.sort(key=takeSecond)
+    return ([i[0] for i in result])
     util.raiseNotDefined()
 
 
