@@ -248,7 +248,40 @@ def positionLogicPlan(problem):
     width, height = problem.getWidth(), problem.getHeight()
     
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    actions = ['North', 'South', 'East', 'West']
+    startState = []
+    initialX, initialY = problem.getStartState()
+    initial = logic.PropSymbolExpr(pacman_str, initialX, initialY, 0)
+    goalX, goalY = problem.getGoalState()
+    goalSuccessors = []
+    goalActions = []
+    
+    steps = 50
+    for x in range(1, width+1):
+        for y in range(1, height+1):
+            if not (x, y) in walls.asList():
+                startState.append(logic.PropSymbolExpr(pacman_str, x, y, 0))
+    for i in range(1, steps):
+        successors = []
+        start = exactlyOne(startState)  # needed for goal
+        goal = logic.PropSymbolExpr(pacman_str, goalX, goalY, i)
+        for x in range(1, width+1):
+            for y in range(1, height+1):
+                successors.append(pacmanSuccessorStateAxioms(x, y, i, walls))
+        successor = logic.conjoin(successors)
+        action = []
+        for a in actions:
+            action.append(logic.PropSymbolExpr(a, i-1))
+        goalActions.append(exactlyOne(action))
+        goalSuccessors.append(successor)
+        print("start: ", start)
+        print("initial: ", initial)
+        print("goal: ", goal)
+        print("goalActions: ", goalActions)
+        print("goalSuccessors: ", goalSuccessors)
+        isGoal = findModel(logic.conjoin([start, initial, goal, logic.conjoin(goalSuccessors), logic.conjoin(goalActions)]))
+        if isGoal:
+            return extractActionSequence(isGoal, action) 
 
 
 def foodLogicPlan(problem):
