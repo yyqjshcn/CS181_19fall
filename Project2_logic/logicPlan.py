@@ -209,7 +209,6 @@ def extractActionSequence(model, actions):
         result[i] = [result[i][0], int(result[i][1])]
     result.sort(key=takeSecond)
     return ([i[0] for i in result])
-    util.raiseNotDefined()
 
 
 def pacmanSuccessorStateAxioms(x, y, t, walls_grid):
@@ -219,7 +218,24 @@ def pacmanSuccessorStateAxioms(x, y, t, walls_grid):
     Current <==> (previous position at time t-1) & (took action to move to x, y)
     """
     "*** YOUR CODE HERE ***"
-    return logic.Expr('A') # Replace this with your expression
+    walls=walls_grid.asList()
+    actions = ['North', 'South', 'East', 'West']
+    operation = []
+    for action in actions:
+        if action == 'North':
+            if (x, y-1) not in walls:
+                operation.append(logic.conjoin(logic.PropSymbolExpr(pacman_str, x, y-1, t-1), logic.PropSymbolExpr('North',t-1)))
+        if action == 'South':
+            if (x, y+1) not in walls:
+                operation.append(logic.conjoin(logic.PropSymbolExpr(pacman_str, x, y+1, t-1), logic.PropSymbolExpr('South',t-1)))
+        if action == 'East':
+            if (x-1, y) not in walls:
+                operation.append(logic.conjoin(logic.PropSymbolExpr(pacman_str, x-1, y, t-1), logic.PropSymbolExpr('East',t-1)))
+        if action == 'West':
+            if (x+1, y) not in walls:
+                operation.append(logic.conjoin(logic.PropSymbolExpr(pacman_str, x+1, y, t-1), logic.PropSymbolExpr('West',t-1)))
+    return logic.PropSymbolExpr(pacman_str, x, y, t) % logic.disjoin(operation)
+    # return logic.Expr('A') # Replace this with your expression
 
 
 def positionLogicPlan(problem):
