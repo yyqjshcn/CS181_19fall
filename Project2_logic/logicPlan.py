@@ -296,8 +296,54 @@ def foodLogicPlan(problem):
     width, height = problem.getWidth(), problem.getHeight()
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    actions = ('North', 'South', 'East', 'West')
+    startState = []
+    startX, startY = problem.getStartState()[0]        # Get the start state axis
+    foodTemp = problem.getStartState()[1]              # Get all the food
+    food = foodTemp.asList()
+    initial = logic.PropSymbolExpr(pacman_str, startX, startY, 0) # needed for goal
+    goalSuccessors = []
+    goalActions = []
+    steps = 50
+    for x in range(1, width+1):
+        for y in range(1, height+1):
+            if not (x, y) in walls.asList():
+                if (x, y) == (startX, startY):
+                    startState.append(logic.PropSymbolExpr(pacman_str, x, y, 0))
+                else:
+                    startState.append(~logic.PropSymbolExpr(pacman_str, x, y, 0))
+    
+    for i in range(1, steps+1):
+        foodLeft = []
+        successors = []
+        start = logic.conjoin(startState)
+        # Deal with food
+        for f in food:
+            foodList = []
+            for j in range(i):
+                foodList.append(logic.PropSymbolExpr(pacman_str,f[0],f[1],j))            
+            foodLeft.append(atLeastOne(foodList))
 
+        # Deal with successors
+        for x in range(1, width+1):
+            for y in range(1, height+1):
+                if (x,y) not in walls.asList():
+                    successors.append(pacmanSuccessorStateAxioms(x, y, i, walls))
+
+        successor = logic.conjoin(successors)
+        action = []
+        for a in actions:
+            action.append(logic.PropSymbolExpr(a, i-1))
+        goalActions.append(exactlyOne(action))
+        goalSuccessors.append(successor)
+        # print("start: ", start)
+        # print("initial: ", initial)
+        # print("food: ", foodLeft)
+        # print("goalActions: ", goalActions)
+        # print("goalSuccessors: ", goalSuccessors)
+        isGoal = findModel(logic.conjoin([start, initial, logic.conjoin(foodLeft), logic.conjoin(goalSuccessors), logic.conjoin(goalActions)]))
+        if isGoal:
+            return extractActionSequence(isGoal, actions) 
 
 # Abbreviations
 plp = positionLogicPlan
