@@ -267,21 +267,22 @@ def positionLogicPlan(problem):
         goal = logic.PropSymbolExpr(pacman_str, goalX, goalY, i)
         for x in range(1, width+1):
             for y in range(1, height+1):
-                successors.append(pacmanSuccessorStateAxioms(x, y, i, walls))
+                if (x,y) not in walls.asList():
+                    successors.append(pacmanSuccessorStateAxioms(x, y, i, walls))
         successor = logic.conjoin(successors)
         action = []
         for a in actions:
             action.append(logic.PropSymbolExpr(a, i-1))
         goalActions.append(exactlyOne(action))
         goalSuccessors.append(successor)
-        print("start: ", start)
-        print("initial: ", initial)
-        print("goal: ", goal)
-        print("goalActions: ", goalActions)
-        print("goalSuccessors: ", goalSuccessors)
+        # print("start: ", start)
+        # print("initial: ", initial)
+        # print("goal: ", goal)
+        # print("goalActions: ", goalActions)
+        # print("goalSuccessors: ", goalSuccessors)
         isGoal = findModel(logic.conjoin([start, initial, goal, logic.conjoin(goalSuccessors), logic.conjoin(goalActions)]))
         if isGoal:
-            return extractActionSequence(isGoal, action) 
+            return extractActionSequence(isGoal, actions) 
 
 
 def foodLogicPlan(problem):
