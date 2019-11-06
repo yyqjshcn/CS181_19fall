@@ -106,6 +106,11 @@ def joinFactors(factors):
     unconditionedVariables = set(factors[0].unconditionedVariables())
     variableDomainsDict = factors[0].variableDomainsDict()
     
+    print(conditionedVariables)
+    print(unconditionedVariables)
+    print(variableDomainsDict)
+    print(factors[0])
+
     returnFactor = factors[0]
     for i in range(1, len(factors)):
         conditionedVariables = conditionedVariables | set(factors[i].conditionedVariables())
@@ -175,9 +180,9 @@ def eliminateWithCallTracking(callTrackingList=None):
         for assignment in factor.getAllPossibleAssignmentDicts():
             prob = 0
             for eliminationValue in variableDomainsDict[eliminationVariable]:
-                assignmentDictCopy = assignment
-                assignmentDictCopy[eliminationVariable] = eliminationValue
-                prob += factor.getProbability(assignmentDictCopy)
+                assignmentCopy = assignment
+                assignmentCopy[eliminationVariable] = eliminationValue
+                prob += factor.getProbability(assignmentCopy)
             returnFactor.setProbability(assignment, prob)
         return returnFactor
 
@@ -234,5 +239,28 @@ def normalize(factor):
                             str(factor))
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    conditionedVariables = set()
+    unconditionedVariables = set()
+    variableDomainsDict = factor.variableDomainsDict()
+    print(variableDomainsDict)
+    print (factor)
 
+    for variable in variableDomainsDict:
+        if variable in set(factor.unconditionedVariables())|set(factor.conditionedVariables()):
+            if len(variableDomainsDict[variable]) == 1:
+                conditionedVariables.add(variable)
+            else:
+                unconditionedVariables.add(variable)
+
+    returnFactor = Factor(unconditionedVariables, conditionedVariables, variableDomainsDict)
+    sumProb = 0
+    for assignment in factor.getAllPossibleAssignmentDicts():
+        sumProb += factor.getProbability(assignment)
+    if sumProb == 0: 
+        return None
+    
+    for assignment in returnFactor.getAllPossibleAssignmentDicts():
+        prob = factor.getProbability(assignment) / sumProb
+        returnFactor.setProbability(assignment, prob)
+
+    return returnFactor
