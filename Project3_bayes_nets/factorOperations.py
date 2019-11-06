@@ -102,7 +102,22 @@ def joinFactors(factors):
 
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    conditionedVariables = set(factors[0].conditionedVariables())
+    unconditionedVariables = set(factors[0].unconditionedVariables())
+    variableDomainsDict = factors[0].variableDomainsDict()
+    
+    returnFactor = factors[0]
+    for i in range(1, len(factors)):
+        conditionedVariables = conditionedVariables | set(factors[i].conditionedVariables())
+        unconditionedVariables = unconditionedVariables | set(factors[i].unconditionedVariables())
+        conditionedVariables = conditionedVariables.difference(unconditionedVariables)
+        newFactor = Factor(unconditionedVariables, conditionedVariables, variableDomainsDict)
+        for assignment in newFactor.getAllPossibleAssignmentDicts():
+            prob = returnFactor.getProbability(assignment) * factors[i].getProbability(assignment)
+            newFactor.setProbability(assignment, prob)
+        returnFactor = newFactor
+    return returnFactor
+
 
 
 def eliminateWithCallTracking(callTrackingList=None):
