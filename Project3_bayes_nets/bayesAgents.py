@@ -96,7 +96,25 @@ def constructBayesNet(gameState):
     variableDomainsDict = {}
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    for housePos in gameState.getPossibleHouses():
+        for obsPos in gameState.getHouseWalls(housePos):
+            obsVars.append(OBS_VAR_TEMPLATE % obsPos)
+    
+    for pos in [X_POS_VAR, Y_POS_VAR]:
+        for house in HOUSE_VARS:
+            edges.append((pos, house))
+
+    for house in HOUSE_VARS:
+        for obs in obsVars:
+            edges.append((house, obs))
+
+    variableDomainsDict[X_POS_VAR] = X_POS_VALS
+    variableDomainsDict[Y_POS_VAR] = Y_POS_VALS
+    for house in HOUSE_VARS:
+        variableDomainsDict[house] = HOUSE_VALS
+    for obs in obsVars:
+        variableDomainsDict[obs] = OBS_VALS
 
     variables = [X_POS_VAR, Y_POS_VAR] + HOUSE_VARS + obsVars
     net = bn.constructEmptyBayesNet(variables, edges, variableDomainsDict)
@@ -124,10 +142,14 @@ def fillYCPT(bayesNet, gameState):
     You can use the PROB_* constants imported from layout rather than writing
     probabilities down by hand.
     """
-
+    from layout import PROB_BOTH_TOP, PROB_BOTH_BOTTOM, PROB_ONLY_LEFT_TOP, PROB_ONLY_LEFT_BOTTOM
     yFactor = bn.Factor([Y_POS_VAR], [], bayesNet.variableDomainsDict())
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    yFactor.setProbability({Y_POS_VAR: BOTH_TOP_VAL}, PROB_BOTH_TOP)
+    yFactor.setProbability({Y_POS_VAR: BOTH_BOTTOM_VAL}, PROB_BOTH_BOTTOM)
+    yFactor.setProbability({Y_POS_VAR: LEFT_TOP_VAL}, PROB_ONLY_LEFT_TOP)
+    yFactor.setProbability({Y_POS_VAR: LEFT_BOTTOM_VAL}, PROB_ONLY_LEFT_BOTTOM)
+
     bayesNet.setCPT(Y_POS_VAR, yFactor)
 
 def fillHouseCPT(bayesNet, gameState):
@@ -192,7 +214,52 @@ def fillObsCPT(bayesNet, gameState):
     bottomLeftPos, topLeftPos, bottomRightPos, topRightPos = gameState.getPossibleHouses()
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    def valToPos(val):
+        if val == BOTTOM_LEFT_VAL:
+            return bottomLeftPos
+        if val == TOP_LEFT_VAL:
+            return topLeftPos
+        if val == BOTTOM_RIGHT_VAL:
+            return bottomRightPos
+        if val == TOP_RIGHT_VAL:
+            return topRightPos
+
+    def isNeighbour(pos1, pos2):
+        return abs(pos1[0] - pos2[0]) <= 1 and abs(pos1[1] - pos2[1]) <= 1
+
+    for housePos in gameState.getPossibleHouses():
+        for wallPos in gameState.getHouseWalls(housePos):
+            obsVar = OBS_VAR_TEMPLATE % wallPos
+            obsFactor = bn.Factor([obsVar], [FOOD_HOUSE_VAR, GHOST_HOUSE_VAR], bayesNet.variableDomainsDict())
+            for assignmentDict in obsFactor.getAllPossibleAssignmentDicts():
+                # print (assignmentDict)
+                prob = 0.0
+
+                # the food condition
+                if isNeighbour(valToPos(assignmentDict[FOOD_HOUSE_VAR]), wallPos):
+                    if assignmentDict[obsVar] == RED_OBS_VAL:
+                        prob = PROB_FOOD_RED
+                    elif assignmentDict[obsVar] == BLUE_OBS_VAL:
+                        prob = 1 - PROB_FOOD_RED
+                    else:
+                        prob = 0
+
+                # the ghost conodition
+                elif isNeighbour(valToPos(assignmentDict[GHOST_HOUSE_VAR]), wallPos):
+                    if assignmentDict[obsVar] == RED_OBS_VAL:
+                        prob = PROB_GHOST_RED
+                    elif assignmentDict[obsVar] == BLUE_OBS_VAL:
+                        prob = 1 - PROB_GHOST_RED
+                    else:
+                        prob = 0
+                
+                else:
+                    if assignmentDict[obsVar] == NO_OBS_VAL:
+                        prob = 1
+                    else:
+                        prob = 0
+                obsFactor.setProbability(assignmentDict, prob)
+            bayesNet.setCPT(obsVar, obsFactor)
 
 def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
     """
