@@ -353,6 +353,11 @@ class ParticleFilter(InferenceModule):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
+        num = self.numParticles / len(self.legalPositions)
+        for i in range(int(num)):
+            for legalPos in self.legalPositions:
+                self.particles.append(legalPos)
+
 
     def observeUpdate(self, observation, gameState):
         """
